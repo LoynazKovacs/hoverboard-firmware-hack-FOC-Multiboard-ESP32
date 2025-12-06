@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EV Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            transition: background 0.3s ease;
+        }
+
+        /* Theme Styles */
+        body.modern {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body.futuristic {
+            background: #0a0e27;
+        }
+
+        body.minimal {
+            background: #f5f5f5;
+        }
+
+        body.racing {
+            background: radial-gradient(ellipse at center, #1a1a1a 0%, #000000 100%);
+        }
+
+        .dashboard {
+            width: 100vw;
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 2vmin;
+            padding: 2vmin;
+        }
+
+        .theme-selector {
+            position: absolute;
+            top: 2vmin;
+            right: 2vmin;
+            z-index: 1000;
+        }
+
+        .theme-selector select {
+            padding: 1.2vmin 2vmin;
+            border-radius: 1vmin;
+            border: none;
+            font-size: 1.6vmin;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        body.minimal .theme-selector select {
+            background: rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        .widget {
+            border-radius: 2vmin;
+            padding: 2vmin;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        /* Modern Theme */
+        body.modern .widget {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* Futuristic Theme */
+        body.futuristic .widget {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid #00ffff;
+            color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        /* Minimal Theme */
+        body.minimal .widget {
+            background: white;
+            border: 1px solid #e0e0e0;
+            color: #333;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Racing Theme */
+        body.racing .widget {
+            background: rgba(255, 0, 0, 0.1);
+            border: 2px solid #ff0000;
+            color: #ff0000;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.4);
+        }
+
+        .speed-display {
+            grid-column: 2;
+            grid-row: 2;
+            font-size: 12vmin;
+            font-weight: bold;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .speed-gauge {
+            width: 35vmin;
+            height: 35vmin;
+            position: relative;
+            margin-bottom: 3vmin;
+        }
+
+        .speed-gauge-bg {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 1.5vmin solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.minimal .speed-gauge-bg {
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .speed-gauge-fill {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 0%);
+            transition: transform 0.5s ease;
+            transform-origin: center;
+        }
+
+        .speed-gauge-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .speed-value-large {
+            font-size: 12vmin;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .speed-label {
+            font-size: 3vmin;
+            margin-top: 1vmin;
+            opacity: 0.7;
+        }
+
+        .battery-widget {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .battery-container {
+            width: 6vmin;
+            height: 12vmin;
+            border: 0.4vmin solid currentColor;
+            border-radius: 1vmin;
+            position: relative;
+            padding: 0.5vmin;
+            margin-bottom: 2vmin;
+        }
+
+        .battery-cap {
+            width: 3vmin;
+            height: 1.5vmin;
+            background: currentColor;
+            position: absolute;
+            top: -1.8vmin;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 0.5vmin 0.5vmin 0 0;
+        }
+
+        .battery-level {
+            width: calc(100% - 1vmin);
+            background: currentColor;
+            position: absolute;
+            bottom: 0.5vmin;
+            left: 0.5vmin;
+            border-radius: 0.5vmin;
+            transition: height 0.5s ease;
+        }
+
+        .battery-percentage {
+            font-size: 4vmin;
+            font-weight: bold;
+        }
+
+        .temp-widget {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        .temp-gauge {
+            width: 12vmin;
+            height: 12vmin;
+            border-radius: 50%;
+            border: 1vmin solid currentColor;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2vmin;
+            position: relative;
+        }
+
+        .temp-value {
+            font-size: 4.5vmin;
+            font-weight: bold;
+        }
+
+        .temp-label {
+            font-size: 1.6vmin;
+            opacity: 0.7;
+        }
+
+        .warning-lights {
+            grid-column: 1 / 4;
+            grid-row: 1;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 2vmin;
+            padding: 1.5vmin 2vmin;
+        }
+
+        .warning-light {
+            width: 5.5vmin;
+            height: 5.5vmin;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 2.5vmin;
+            flex-shrink: 0;
+            background: rgba(128, 128, 128, 0.3);
+            border: 0.3vmin solid rgba(128, 128, 128, 0.5);
+            filter: grayscale(100%);
+            opacity: 0.5;
+        }
+
+        .warning-light.active {
+            filter: grayscale(0%);
+            opacity: 1;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        .warning-light.battery-warning { color: white; }
+        .warning-light.battery-warning.active { 
+            background: transparent;
+            border: 0.4vmin solid #ffa500;
+            box-shadow: 0 0 2vmin rgba(255, 165, 0, 0.6);
+            animation: pulse 1s infinite;
+        }
+        
+        .warning-light.temp-warning { color: white; }
+        .warning-light.temp-warning.active { 
+            background: transparent;
+            border: 0.4vmin solid #ff0000;
+            box-shadow: 0 0 2vmin rgba(255, 0, 0, 0.6);
+            animation: pulse 1s infinite;
+        }
+        
+        .warning-light.eco-mode { color: white; }
+        .warning-light.eco-mode.active { 
+            background: transparent;
+            border: 0.4vmin solid #4caf50;
+            box-shadow: 0 0 2vmin rgba(76, 175, 80, 0.6);
+        }
+        
+        .warning-light.regen { color: white; }
+        .warning-light.regen.active { 
+            background: transparent;
+            border: 0.4vmin solid #2196f3;
+            box-shadow: 0 0 2vmin rgba(33, 150, 243, 0.6);
+        }
+        
+        .warning-light.parking { color: white; }
+        .warning-light.parking.active { 
+            background: transparent;
+            border: 0.4vmin solid #ffa500;
+            box-shadow: 0 0 2vmin rgba(255, 165, 0, 0.6);
+        }
+
+        .info-panel {
+            grid-column: 1 / 4;
+            grid-row: 3;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 4vmin;
+            padding: 1.5vmin 2vmin;
+        }
+
+        .info-item {
+            text-align: center;
+            padding: 1vmin 2vmin;
+            flex-shrink: 0;
+        }
+
+        .info-value {
+            font-size: 4vmin;
+            font-weight: bold;
+        }
+
+        .info-label {
+            font-size: 1.4vmin;
+            opacity: 0.7;
+            margin-top: 0.8vmin;
+        }
+
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.8vmin 1.5vmin;
+            border-radius: 0.6vmin;
+            white-space: nowrap;
+            font-size: 1.4vmin;
+            margin-bottom: 0.8vmin;
+        }
+
+        /* Media queries for very small and very large screens */
+        @media (max-width: 768px) {
+            .dashboard {
+                gap: 1.5vmin;
+                padding: 1.5vmin;
+            }
+            .speed-display {
+                font-size: 18vmin;
+            }
+            .speed-label {
+                font-size: 4.5vmin;
+            }
+            .battery-container {
+                width: 10vmin;
+                height: 16vmin;
+            }
+            .battery-percentage {
+                font-size: 6vmin;
+            }
+            .temp-gauge {
+                width: 18vmin;
+                height: 18vmin;
+                border: 1.5vmin solid currentColor;
+            }
+            .temp-value {
+                font-size: 6vmin;
+            }
+            .temp-label {
+                font-size: 3vmin;
+            }
+            .warning-light {
+                width: 9vmin;
+                height: 9vmin;
+                font-size: 4.5vmin;
+            }
+            .info-value {
+                font-size: 6vmin;
+            }
+            .info-label {
+                font-size: 3vmin;
+            }
+            .theme-selector select {
+                font-size: 3.5vmin;
+                padding: 1.5vmin 2.5vmin;
+            }
+        }
+
+        @media (min-width: 1920px) {
+            .speed-display {
+                font-size: 180px;
+            }
+            .speed-label {
+                font-size: 42px;
+            }
+            .battery-container {
+                width: 90px;
+                height: 180px;
+            }
+            .battery-percentage {
+                font-size: 60px;
+            }
+            .temp-gauge {
+                width: 180px;
+                height: 180px;
+                border: 14px solid currentColor;
+            }
+            .temp-value {
+                font-size: 65px;
+            }
+            .temp-label {
+                font-size: 24px;
+            }
+            .warning-light {
+                width: 80px;
+                height: 80px;
+                font-size: 36px;
+            }
+            .info-value {
+                font-size: 60px;
+            }
+            .info-label {
+                font-size: 20px;
+            }
+            .theme-selector select {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body class="modern">
+    <div class="theme-selector">
+        <select id="themeSelect">
+            <option value="modern">Modern</option>
+            <option value="futuristic">Futuristic</option>
+            <option value="minimal">Minimal</option>
+            <option value="racing">Racing</option>
+        </select>
+    </div>
+
+    <div class="dashboard">
+        <div class="widget warning-lights">
+            <div class="warning-light battery-warning tooltip" data-tooltip="Low Battery Warning" onclick="toggleLight(this)">⚠️</div>
+            <div class="warning-light temp-warning tooltip" data-tooltip="High Temperature Warning" onclick="toggleLight(this)">🌡️</div>
+            <div class="warning-light eco-mode active tooltip" data-tooltip="Eco Mode" onclick="toggleLight(this)">🌿</div>
+            <div class="warning-light regen active tooltip" data-tooltip="Regenerative Braking" onclick="toggleLight(this)">⚡</div>
+            <div class="warning-light parking tooltip" data-tooltip="Parking Brake" onclick="toggleLight(this)">🅿️</div>
+        </div>
+
+        <div class="widget battery-widget">
+            <div class="battery-container">
+                <div class="battery-cap"></div>
+                <div class="battery-level" id="batteryLevel"></div>
+            </div>
+            <div class="battery-percentage" id="batteryPercent">85%</div>
+            <div class="info-label">Battery</div>
+        </div>
+
+        <div class="widget speed-display">
+            <div class="speed-gauge">
+                <div class="speed-gauge-bg">
+                    <svg class="speed-gauge-fill" viewBox="0 0 100 100" style="transform: rotate(-90deg)">
+                        <circle id="speedArc" cx="50" cy="50" r="45" fill="none" stroke="currentColor" stroke-width="10" 
+                                stroke-dasharray="282.7" stroke-dashoffset="0" 
+                                style="transition: stroke-dashoffset 0.5s ease"/>
+                    </svg>
+                </div>
+                <div class="speed-gauge-inner">
+                    <div class="speed-value-large" id="speedValue">68</div>
+                    <div class="speed-label">km/h</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="widget temp-widget">
+            <div class="temp-gauge">
+                <div class="temp-value" id="tempValue">72</div>
+                <div class="temp-label">°C</div>
+            </div>
+            <div class="info-label">Motor Temp</div>
+        </div>
+
+        <div class="widget info-panel">
+            <div class="info-item">
+                <div class="info-value" id="rangeValue">342</div>
+                <div class="info-label">Range (km)</div>
+            </div>
+            <div class="info-item">
+                <div class="info-value" id="powerValue">45</div>
+                <div class="info-label">Power (kW)</div>
+            </div>
+            <div class="info-item">
+                <div class="info-value" id="efficiencyValue">16.4</div>
+                <div class="info-label">kWh/100km</div>
+            </div>
+            <div class="info-item">
+                <div class="info-value" id="tripValue">127</div>
+                <div class="info-label">Trip (km)</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme switching
+        const themeSelect = document.getElementById('themeSelect');
+        themeSelect.addEventListener('change', (e) => {
+            document.body.className = e.target.value;
+        });
+
+        // Toggle warning lights
+        function toggleLight(element) {
+            element.classList.toggle('active');
+        }
+
+        // Simulate dynamic data updates
+        function updateDashboard() {
+            // Speed simulation (varies between 40-120 km/h)
+            const speed = Math.floor(40 + Math.random() * 80);
+            document.getElementById('speedValue').textContent = speed;
+            
+            // Update speed gauge (max speed 160 km/h for the gauge)
+            const maxSpeed = 160;
+            const speedPercentage = (speed / maxSpeed) * 100;
+            const circumference = 282.7;
+            const offset = circumference - (circumference * speedPercentage) / 100;
+            document.getElementById('speedArc').style.strokeDashoffset = offset;
+
+            // Battery simulation (slow discharge)
+            const currentBattery = parseInt(document.getElementById('batteryPercent').textContent);
+            const newBattery = Math.max(20, currentBattery - (Math.random() < 0.1 ? 1 : 0));
+            document.getElementById('batteryPercent').textContent = newBattery + '%';
+            
+            // Calculate battery level height dynamically based on container
+            const container = document.querySelector('.battery-container');
+            const containerHeight = container.offsetHeight - (parseFloat(getComputedStyle(container).padding) * 2);
+            const levelHeight = (newBattery / 100) * containerHeight;
+            document.getElementById('batteryLevel').style.height = levelHeight + 'px';
+            
+            // Auto-activate battery warning if low
+            const batteryWarning = document.querySelector('.battery-warning');
+            if (newBattery < 30 && !batteryWarning.classList.contains('active')) {
+                batteryWarning.classList.add('active');
+            } else if (newBattery >= 30) {
+                batteryWarning.classList.remove('active');
+            }
+
+            // Temperature simulation (varies between 60-95°C)
+            const temp = Math.floor(60 + Math.random() * 35);
+            document.getElementById('tempValue').textContent = temp;
+            
+            // Auto-activate temp warning if high
+            const tempWarning = document.querySelector('.temp-warning');
+            if (temp > 85 && !tempWarning.classList.contains('active')) {
+                tempWarning.classList.add('active');
+            } else if (temp <= 85) {
+                tempWarning.classList.remove('active');
+            }
+
+            // Range calculation based on battery
+            const range = Math.floor(newBattery * 4);
+            document.getElementById('rangeValue').textContent = range;
+
+            // Power varies with speed
+            const power = Math.floor(speed * 0.5 + Math.random() * 20);
+            document.getElementById('powerValue').textContent = power;
+
+            // Efficiency
+            const efficiency = (15 + Math.random() * 4).toFixed(1);
+            document.getElementById('efficiencyValue').textContent = efficiency;
+
+            // Trip distance slowly increases
+            const currentTrip = parseInt(document.getElementById('tripValue').textContent);
+            document.getElementById('tripValue').textContent = currentTrip + (Math.random() < 0.3 ? 1 : 0);
+        }
+
+        // Initialize battery level on load
+        window.addEventListener('load', () => {
+            const container = document.querySelector('.battery-container');
+            const containerHeight = container.offsetHeight - (parseFloat(getComputedStyle(container).padding) * 2);
+            const levelHeight = (85 / 100) * containerHeight;
+            document.getElementById('batteryLevel').style.height = levelHeight + 'px';
+        });
+
+        // Update dashboard every 2 seconds
+        setInterval(updateDashboard, 2000);
+    </script>
+</body>
+</html>

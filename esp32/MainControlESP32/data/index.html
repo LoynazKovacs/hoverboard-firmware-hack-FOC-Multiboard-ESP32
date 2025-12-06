@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HoverKart Telemetry Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>HoverKart Telemetry</h1>
+  <div id="status">
+    <div>Target: <span id="targetCmd">-</span></div>
+    <div>Ramped: <span id="rampedCmd">-</span></div>
+  </div>
+  <div id="boards">
+    <div class="board" id="board0">
+      <h2>Board 0</h2>
+      <div>Status: <span class="indicator" id="ind0"></span></div>
+      <div>Speed: <span id="spd0">-</span></div>
+      <div>Voltage: <span id="vol0">-</span></div>
+      <div>Temp: <span id="tmp0">-</span></div>
+    </div>
+    <div class="board" id="board1">
+      <h2>Board 1</h2>
+      <div>Status: <span class="indicator" id="ind1"></span></div>
+      <div>Speed: <span id="spd1">-</span></div>
+      <div>Voltage: <span id="vol1">-</span></div>
+      <div>Temp: <span id="tmp1">-</span></div>
+    </div>
+    <div class="board" id="board2">
+      <h2>Board 2</h2>
+      <div>Status: <span class="indicator" id="ind2"></span></div>
+      <div>Speed: <span id="spd2">-</span></div>
+      <div>Voltage: <span id="vol2">-</span></div>
+      <div>Temp: <span id="tmp2">-</span></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

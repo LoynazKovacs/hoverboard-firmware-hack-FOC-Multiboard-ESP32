@@ -8,3 +8,4 @@ MDK-ARM/Objects/
 MDK-ARM/RTE/
 MDK-ARM/*.uvguix.*
 build/
+esp32/MainControlESP32/secrets.h

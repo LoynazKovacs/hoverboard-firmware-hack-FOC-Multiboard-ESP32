@@ -1,0 +1,30 @@
+body {
+  font-family: sans-serif;
+  margin: 20px;
+  background: #f4f4f4;
+}
+
+#status {
+  margin-bottom: 20px;
+  font-size: 1.2em;
+}
+
+.board {
+  border: 1px solid #ccc;
+  background: #fff;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.indicator {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: red;  /* default off */
+  margin-left: 5px;
+  vertical-align: middle;
+}
+.indicator.active {
+  background: green;
+}
